@@ -47,10 +47,10 @@ struct TasksView: View {
         // Layout para dos instancias de Google Tasks
         // Utilizo HSplitView para una vista lado a lado cómoda para tareas
         HSplitView {
-            WorkspaceWebView(urlString: "https://tasksboard.com", sessionID: "tasks_personal")
+            WorkspaceWebView(urlString: "https://tasks.google.com/tasks/", sessionID: "tasks_personal")
                 .frame(minWidth: 400)
             
-            WorkspaceWebView(urlString: "https://tasksboard.com", sessionID: "tasks_work")
+            WorkspaceWebView(urlString: "https://tasks.google.com/tasks/", sessionID: "tasks_work")
                 .frame(minWidth: 400)
         }
     }
