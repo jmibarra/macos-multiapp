@@ -1,8 +1,8 @@
 import SwiftUI
 import WebKit
 
-// El modelo WorkspaceWebView actúa como un puente entre SwiftUI y el WKWebView de UIKit/AppKit.
-// Implementamos NSViewRepresentable para poder usar WKWebView dentro de una interfaz de SwiftUI en macOS.
+/// WorkspaceWebView actúa como un puente entre SwiftUI y el WKWebView de AppKit.
+/// Implementa NSViewRepresentable para poder usar WKWebView dentro de una interfaz de SwiftUI en macOS.
 struct WorkspaceWebView: NSViewRepresentable {
     let urlString: String
     let sessionID: String
@@ -10,13 +10,20 @@ struct WorkspaceWebView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         
-        // El inicializador init(forIdentifier:) está disponible a partir de macOS 14.0.
-        // Crea un DataStore persistente basado en un identificador único (UUID).
-        let sessionUUID = deterministicUUID(from: sessionID)
-        let dataStore = WKWebsiteDataStore(forIdentifier: sessionUUID)
-        configuration.websiteDataStore = dataStore
+        // Aislamiento de Sesiones:
+        // El inicializador identifier permite crear DataStores independientes.
+        // Esto separa cookies, caché y almacenamiento local por cada sessionID.
+        if let sessionUUID = deterministicUUID(from: sessionID) {
+            let dataStore = WKWebsiteDataStore(forIdentifier: sessionUUID)
+            configuration.websiteDataStore = dataStore
+        }
+        
+        // Optimizaciones de rendimiento y comportamiento
+        configuration.allowsAirPlayForMediaPlayback = false
         
         let webView = WKWebView(frame: .zero, configuration: configuration)
+        
+        // User-Agent moderno de Safari para evitar que WhatsApp Web bloquee la carga.
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
         
         if let url = URL(string: urlString) {
@@ -28,26 +35,26 @@ struct WorkspaceWebView: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
+        // No se requiere actualización dinámica por ahora.
     }
     
-    // Genera un UUID determinista a partir de un string de sesión.
-    private func deterministicUUID(from string: String) -> UUID {
+    /// Genera un UUID determinista a partir de un string de sesión.
+    /// Esto asegura que el mismo sessionID siempre acceda al mismo DataStore persistente.
+    private func deterministicUUID(from string: String) -> UUID? {
         if let uuid = UUID(uuidString: string) {
             return uuid
         }
         
-        // Si el sessionID no es un UUID, generamos uno basado en el hash del string.
+        // Generamos un UUID basado en el hash del string para consistencia.
         var hash = abs(string.hashValue)
         let bytes = withUnsafeBytes(of: &hash) { Array($0) }
         
-        // Rellenamos con ceros para completar el formato de UUID
         var uuidBytes: [UInt8] = Array(repeating: 0, count: 16)
         for (i, byte) in bytes.enumerated() {
             uuidBytes[i % 16] = byte
         }
         
-        // Marcamos como UUID versión 4 (aleatorio) para cumplir con el estándar,
-        // aunque sea derivado de un hash.
+        // Seteamos bits de versión 4 (aunque sea determinista) para validez.
         uuidBytes[6] = (uuidBytes[6] & 0x0f) | 0x40
         uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0x80
         

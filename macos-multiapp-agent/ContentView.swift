@@ -2,57 +2,57 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        // HSplitView principal que divide el área de Comunicación (Izquierda) de Tareas (Derecha)
-        HSplitView {
-            // Panel Izquierdo: Comunicación (3 columnas)
-            HSplitView {
-                VStack(spacing: 0) {
-                    Text("WhatsApp")
-                        .font(.caption)
-                        .padding(4)
-                    WorkspaceWebView(urlString: "https://web.whatsapp.com", sessionID: "whatsapp")
+        TabView {
+            // PESTAÑA 1: COMUNICACIÓN
+            CommunicationView()
+                .tabItem {
+                    Label("Comunicación", systemImage: "bubble.left.and.bubble.right")
                 }
-                .frame(minWidth: 200)
-                
-                VStack(spacing: 0) {
-                    Text("Teams")
-                        .font(.caption)
-                        .padding(4)
-                    WorkspaceWebView(urlString: "https://teams.microsoft.com", sessionID: "teams")
-                }
-                .frame(minWidth: 200)
-                
-                VStack(spacing: 0) {
-                    Text("Slack")
-                        .font(.caption)
-                        .padding(4)
-                    WorkspaceWebView(urlString: "https://app.slack.com", sessionID: "slack")
-                }
-                .frame(minWidth: 200)
-            }
-            .frame(minWidth: 600)
             
-            // Panel Derecho: Gestión de Tareas (2 filas)
+            // PESTAÑA 2: TAREAS
+            TasksView()
+                .tabItem {
+                    Label("Tareas", systemImage: "checklist")
+                }
+        }
+        .frame(minWidth: 1000, minHeight: 700)
+    }
+}
+
+// MARK: - Vistas de Pestañas
+
+struct CommunicationView: View {
+    var body: some View {
+        // HSplitView principal (50% / 50%)
+        HSplitView {
+            // Mitad Izquierda: WhatsApp
+            WorkspaceWebView(urlString: "https://web.whatsapp.com", sessionID: "whatsapp")
+                .frame(minWidth: 300)
+            
+            // Mitad Derecha: Teams arriba, Slack abajo
             VSplitView {
-                VStack(spacing: 0) {
-                    Text("Tasks Personal")
-                        .font(.caption)
-                        .padding(4)
-                    WorkspaceWebView(urlString: "https://tasksboard.com", sessionID: "tasks_personal")
-                }
-                .frame(minHeight: 200)
+                WorkspaceWebView(urlString: "https://teams.microsoft.com", sessionID: "teams")
+                    .frame(minHeight: 200)
                 
-                VStack(spacing: 0) {
-                    Text("Tasks Trabajo")
-                        .font(.caption)
-                        .padding(4)
-                    WorkspaceWebView(urlString: "https://tasksboard.com", sessionID: "tasks_work")
-                }
-                .frame(minHeight: 200)
+                WorkspaceWebView(urlString: "https://app.slack.com", sessionID: "slack")
+                    .frame(minHeight: 200)
             }
             .frame(minWidth: 300)
         }
-        .frame(minWidth: 900, minHeight: 600)
+    }
+}
+
+struct TasksView: View {
+    var body: some View {
+        // Layout para dos instancias de Google Tasks
+        // Utilizo HSplitView para una vista lado a lado cómoda para tareas
+        HSplitView {
+            WorkspaceWebView(urlString: "https://tasksboard.com", sessionID: "tasks_personal")
+                .frame(minWidth: 400)
+            
+            WorkspaceWebView(urlString: "https://tasksboard.com", sessionID: "tasks_work")
+                .frame(minWidth: 400)
+        }
     }
 }
 
