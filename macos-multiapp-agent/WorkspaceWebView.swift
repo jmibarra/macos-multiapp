@@ -1,6 +1,56 @@
 import SwiftUI
 import WebKit
 
+// MARK: - ZoomableWebView
+
+/// Subclase de WKWebView que intercepta los atajos de teclado Cmd++, Cmd+- y Cmd+0
+/// para controlar el zoom de la página. WKWebView no maneja estos atajos por defecto.
+class ZoomableWebView: WKWebView {
+    
+    /// Incremento/decremento de zoom por cada pulsación de tecla.
+    private let zoomStep: CGFloat = 0.1
+    /// Límite mínimo de zoom (20%).
+    private let minZoom: CGFloat = 0.2
+    /// Límite máximo de zoom (300%).
+    private let maxZoom: CGFloat = 3.0
+    
+    /// Verifica si este WebView (o alguna de sus subvistas) es el first responder actual.
+    /// Esto evita que un WebView sin foco consuma los atajos de zoom.
+    private var hasKeyboardFocus: Bool {
+        guard let firstResponder = window?.firstResponder as? NSView else {
+            return false
+        }
+        return firstResponder === self || firstResponder.isDescendant(of: self)
+    }
+    
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        // Solo interceptar si este WebView tiene el foco del teclado
+        guard hasKeyboardFocus,
+              event.modifierFlags.contains(.command) else {
+            return super.performKeyEquivalent(with: event)
+        }
+        
+        switch event.charactersIgnoringModifiers {
+        case "+", "=":
+            // Cmd + "+" o Cmd + "=" → Acercar zoom
+            pageZoom = min(pageZoom + zoomStep, maxZoom)
+            return true
+        case "-":
+            // Cmd + "-" → Alejar zoom
+            pageZoom = max(pageZoom - zoomStep, minZoom)
+            return true
+        case "0":
+            // Cmd + "0" → Restablecer zoom a 100%
+            pageZoom = 1.0
+            return true
+        default:
+            return super.performKeyEquivalent(with: event)
+        }
+    }
+}
+
+// MARK: - WorkspaceWebView
+
 /// WorkspaceWebView actúa como un puente entre SwiftUI y el WKWebView de AppKit.
 /// Implementa NSViewRepresentable para poder usar WKWebView dentro de una interfaz de SwiftUI en macOS.
 struct WorkspaceWebView: NSViewRepresentable {
@@ -47,7 +97,7 @@ struct WorkspaceWebView: NSViewRepresentable {
 
     // MARK: - NSViewRepresentable
 
-    func makeNSView(context: Context) -> WKWebView {
+    func makeNSView(context: Context) -> ZoomableWebView {
         let configuration = WKWebViewConfiguration()
         
         // Aislamiento de Sesiones:
@@ -67,7 +117,8 @@ struct WorkspaceWebView: NSViewRepresentable {
         preferences.javaScriptCanOpenWindowsAutomatically = true
         configuration.preferences = preferences
         
-        let webView = WKWebView(frame: .zero, configuration: configuration)
+        // Usamos ZoomableWebView para soportar Cmd++, Cmd+-, Cmd+0
+        let webView = ZoomableWebView(frame: .zero, configuration: configuration)
         
         // Asignamos los delegados del Coordinator
         webView.uiDelegate = context.coordinator
@@ -84,7 +135,7 @@ struct WorkspaceWebView: NSViewRepresentable {
         return webView
     }
 
-    func updateNSView(_ nsView: WKWebView, context: Context) {
+    func updateNSView(_ nsView: ZoomableWebView, context: Context) {
         // No se requiere actualización dinámica por ahora.
     }
     
