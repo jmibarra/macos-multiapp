@@ -31,7 +31,7 @@ struct CommunicationView: View {
             
             // Mitad Derecha: Teams arriba, Slack abajo
             VSplitView {
-                WorkspaceWebView(urlString: "https://teams.microsoft.com", sessionID: "teams")
+                WorkspaceWebView(urlString: "https://teams.microsoft.com/v2/", sessionID: "teams")
                     .frame(minHeight: 200)
                 
                 WorkspaceWebView(urlString: "https://app.slack.com", sessionID: "slack")

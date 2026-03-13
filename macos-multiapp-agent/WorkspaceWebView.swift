@@ -23,8 +23,8 @@ struct WorkspaceWebView: NSViewRepresentable {
         
         let webView = WKWebView(frame: .zero, configuration: configuration)
         
-        // User-Agent moderno de Safari para evitar que WhatsApp Web bloquee la carga.
-        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+        // User-Agent de Safari 26 (o superior) para soportar Slack y MS Teams.
+        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
         
         if let url = URL(string: urlString) {
             let request = URLRequest(url: url)
