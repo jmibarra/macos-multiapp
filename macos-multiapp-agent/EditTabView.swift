@@ -13,66 +13,140 @@ struct EditTabView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Text("Nueva Pestaña")
-                .font(.headline)
-                .padding()
+            // Cabecera superior envolvente
+            ZStack {
+                Color(NSColor.controlBackgroundColor)
+                    .edgesIgnoringSafeArea(.top)
+                
+                VStack(spacing: 8) {
+                    Image(systemName: "macwindow.badge.plus")
+                        .font(.system(size: 32))
+                        .foregroundColor(.accentColor)
+                    
+                    Text("Nueva Pestaña")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                }
+                .padding(.vertical, 20)
+            }
+            .frame(height: 100)
             
-            Form {
-                Section {
-                    TextField("Nombre de la pestaña", text: $tabName)
+            Divider()
+            
+            // Contenido del Formulario
+            VStack(alignment: .leading, spacing: 20) {
+                // Nombre
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Nombre de la pestaña")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("Ej: Comunicación, Trabajo...", text: $tabName)
+                        .textFieldStyle(.roundedBorder)
+                        .controlSize(.large)
                 }
                 
-                Section(header: Text("Diseño")) {
-                    Picker("Layout", selection: $selectedLayout) {
+                // Diseño
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Disposición")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Picker("", selection: $selectedLayout) {
                         ForEach(LayoutType.allCases) { layout in
                             Text(layout.rawValue).tag(layout)
                         }
                     }
                     .pickerStyle(.segmented)
+                    .labelsHidden()
                 }
                 
-                Section(header: Text("Servicios")) {
-                    if selectedLayout == .fullScreen {
-                        Picker("Servicio", selection: $selectedService1) {
-                            ForEach(Service.allCases) { service in
-                                Text(service.rawValue).tag(service)
+                // Servicios
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Servicios Web")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 12) {
+                        if selectedLayout == .fullScreen {
+                            HStack {
+                                Text("App Principal:")
+                                    .frame(width: 110, alignment: .trailing)
+                                Picker("", selection: $selectedService1) {
+                                    ForEach(Service.allCases) { service in
+                                        Text(service.rawValue).tag(service)
+                                    }
+                                }
+                                .labelsHidden()
+                                
+                                Spacer()
                             }
-                        }
-                    } else if selectedLayout == .verticalSplit {
-                        Picker("Panel Izquierdo", selection: $selectedService1) {
-                            ForEach(Service.allCases) { service in
-                                Text(service.rawValue).tag(service)
+                        } else if selectedLayout == .verticalSplit {
+                            HStack {
+                                Text("Panel Izquierdo:")
+                                    .frame(width: 110, alignment: .trailing)
+                                Picker("", selection: $selectedService1) {
+                                    ForEach(Service.allCases) { service in
+                                        Text(service.rawValue).tag(service)
+                                    }
+                                }
+                                .labelsHidden()
+                                
+                                Spacer()
                             }
-                        }
-                        
-                        Picker("Panel Derecho", selection: $selectedService2) {
-                            ForEach(Service.allCases) { service in
-                                Text(service.rawValue).tag(service)
+                            
+                            HStack {
+                                Text("Panel Derecho:")
+                                    .frame(width: 110, alignment: .trailing)
+                                Picker("", selection: $selectedService2) {
+                                    ForEach(Service.allCases) { service in
+                                        Text(service.rawValue).tag(service)
+                                    }
+                                }
+                                .labelsHidden()
+                                
+                                Spacer()
                             }
                         }
                     }
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                    )
                 }
             }
-            .padding()
+            .padding(24)
             
+            Spacer(minLength: 0)
+            
+            Divider()
+            
+            // Botones de acción
             HStack {
                 Button("Cancelar") {
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
+                .controlSize(.large)
                 
                 Spacer()
                 
-                Button("Guardar") {
+                Button("Crear Pestaña") {
                     saveTab()
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(tabName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .keyboardShortcut(.defaultAction)
             }
-            .padding()
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .background(Color(NSColor.windowBackgroundColor))
         }
-        .frame(width: 400, height: 350)
+        .frame(width: 480, height: 500)
     }
     
     private func saveTab() {
