@@ -1,5 +1,6 @@
 import SwiftUI
 import WebKit
+import CryptoKit
 
 // MARK: - ZoomableWebView
 
@@ -283,13 +284,14 @@ struct WorkspaceWebView: NSViewRepresentable {
             return uuid
         }
         
-        // Generamos un UUID basado en el hash del string para consistencia.
-        var hash = abs(string.hashValue)
-        let bytes = withUnsafeBytes(of: &hash) { Array($0) }
+        // Generamos un hash SHA256 del string que siempre será igual para el mismo texto,
+        // sin importar si la app se reinicia (String.hashValue cambia en cada ejecución por seguridad).
+        let hash = SHA256.hash(data: Data(string.utf8))
+        let hashBytes = Array(hash)
         
         var uuidBytes: [UInt8] = Array(repeating: 0, count: 16)
-        for (i, byte) in bytes.enumerated() {
-            uuidBytes[i % 16] = byte
+        for i in 0..<16 {
+            uuidBytes[i] = hashBytes[i]
         }
         
         // Seteamos bits de versión 4 (aunque sea determinista) para validez.
