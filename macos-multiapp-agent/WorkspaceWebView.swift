@@ -59,14 +59,76 @@ struct WorkspaceWebView: NSViewRepresentable {
 
     // MARK: - Coordinator (delegados de WKWebView)
     
-    /// Coordinator maneja eventos del WKWebView como apertura de nuevas ventanas
-    /// y decisiones de navegación. Esto es clave para que servicios como Slack
-    /// funcionen, ya que intentan abrir enlaces en nuevas pestañas.
+    /// Coordinator maneja eventos del WKWebView como apertura de nuevas ventanas,
+    /// decisiones de navegación, mensajes del JS bridge para notificaciones,
+    /// y observación del título para badge count.
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(sessionID: sessionID)
     }
     
-    class Coordinator: NSObject, WKUIDelegate, WKNavigationDelegate {
+    class Coordinator: NSObject, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler {
+        
+        let sessionID: String
+        private var titleObservation: NSKeyValueObservation?
+        
+        init(sessionID: String) {
+            self.sessionID = sessionID
+            super.init()
+        }
+        
+        // MARK: - WKScriptMessageHandler (JS Bridge para notificaciones)
+        
+        /// Recibe mensajes del JavaScript inyectado cuando una web app
+        /// intenta crear una notificación via new Notification().
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage
+        ) {
+            guard message.name == "notificationBridge",
+                  let body = message.body as? [String: Any] else { return }
+            
+            let title = body["title"] as? String ?? sessionID
+            let notifBody = body["body"] as? String ?? ""
+            
+            NotificationManager.shared.showNotification(
+                title: title,
+                body: notifBody,
+                sessionID: sessionID
+            )
+        }
+        
+        // MARK: - Observación de título para badge count
+        
+        /// Inicia la observación KVO del título del WebView.
+        /// Muchas web apps ponen contadores en el título: "(3) Slack", "(5) WhatsApp".
+        func observeTitle(of webView: WKWebView) {
+            titleObservation = webView.observe(\.title, options: [.new]) { [weak self] _, change in
+                guard let self = self,
+                      let newTitle = change.newValue as? String else { return }
+                
+                let count = self.extractBadgeCount(from: newTitle)
+                NotificationManager.shared.updateBadgeCount(count, for: self.sessionID)
+            }
+        }
+        
+        /// Extrae el número de notificaciones del título de la página.
+        /// Soporta formatos como "(3) Slack", "(12) WhatsApp", "Slack • 3", etc.
+        private func extractBadgeCount(from title: String) -> Int {
+            // Formato más común: "(N) Título"
+            if let match = title.range(of: #"\((\d+)\)"#, options: .regularExpression) {
+                let numberStr = title[match].dropFirst().dropLast()
+                return Int(numberStr) ?? 0
+            }
+            // Formato alternativo: "Título • N"
+            if let match = title.range(of: #"[•·]\s*(\d+)"#, options: .regularExpression) {
+                let substring = title[match]
+                let digits = substring.filter { $0.isNumber }
+                return Int(digits) ?? 0
+            }
+            return 0
+        }
+        
+        // MARK: - WKUIDelegate
         
         /// Se invoca cuando una página intenta abrir una nueva ventana/pestaña
         /// (ej: window.open(), target="_blank", etc.).
@@ -77,15 +139,15 @@ struct WorkspaceWebView: NSViewRepresentable {
             for navigationAction: WKNavigationAction,
             windowFeatures: WKWindowFeatures
         ) -> WKWebView? {
-            // Si el frame destino es nil, significa que quiere abrir nueva ventana.
             if navigationAction.targetFrame == nil || !(navigationAction.targetFrame!.isMainFrame) {
                 webView.load(navigationAction.request)
             }
-            // Retornamos nil para indicar que NO creamos un WKWebView nuevo.
             return nil
         }
         
-        /// Maneja decisiones de navegación para permitir redirecciones normales.
+        // MARK: - WKNavigationDelegate
+        
+        /// Permite todas las redirecciones de navegación.
         func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
@@ -117,12 +179,29 @@ struct WorkspaceWebView: NSViewRepresentable {
         preferences.javaScriptCanOpenWindowsAutomatically = true
         configuration.preferences = preferences
         
+        // MARK: JS Bridge para interceptar Web Notifications API
+        // Este script sobrescribe window.Notification para redirigir las notificaciones
+        // del navegador hacia nuestro handler nativo via webkit.messageHandlers.
+        let notificationScript = WKUserScript(
+            source: Self.notificationBridgeJS,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false
+        )
+        configuration.userContentController.addUserScript(notificationScript)
+        configuration.userContentController.add(
+            context.coordinator,
+            name: "notificationBridge"
+        )
+        
         // Usamos ZoomableWebView para soportar Cmd++, Cmd+-, Cmd+0
         let webView = ZoomableWebView(frame: .zero, configuration: configuration)
         
         // Asignamos los delegados del Coordinator
         webView.uiDelegate = context.coordinator
         webView.navigationDelegate = context.coordinator
+        
+        // Iniciar observación del título para badge count
+        context.coordinator.observeTitle(of: webView)
         
         // User-Agent de Safari 26 (o superior) para soportar Slack y MS Teams.
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
@@ -138,6 +217,62 @@ struct WorkspaceWebView: NSViewRepresentable {
     func updateNSView(_ nsView: ZoomableWebView, context: Context) {
         // No se requiere actualización dinámica por ahora.
     }
+    
+    // MARK: - JavaScript Bridge
+    
+    /// Script JS que sobrescribe la Web Notifications API del navegador.
+    /// Intercepta `new Notification()` y `Notification.requestPermission()`
+    /// para redirigirlos al handler nativo de Swift.
+    private static let notificationBridgeJS = """
+    (function() {
+        // Guardamos la referencia original por si la necesitamos
+        const OriginalNotification = window.Notification;
+        
+        // Sobrescribimos el constructor de Notification
+        window.Notification = function(title, options) {
+            options = options || {};
+            // Enviamos al handler nativo de Swift
+            try {
+                webkit.messageHandlers.notificationBridge.postMessage({
+                    title: title || '',
+                    body: options.body || '',
+                    icon: options.icon || '',
+                    tag: options.tag || ''
+                });
+            } catch(e) {
+                console.log('NotificationBridge error:', e);
+            }
+            
+            // Simulamos el objeto Notification para que la web app no crashee
+            this.title = title;
+            this.body = options.body || '';
+            this.icon = options.icon || '';
+            this.tag = options.tag || '';
+            this.onclick = null;
+            this.onclose = null;
+            this.onerror = null;
+            this.onshow = null;
+            this.close = function() {};
+        };
+        
+        // Siempre reportamos que las notificaciones están permitidas
+        window.Notification.permission = 'granted';
+        
+        // requestPermission siempre concede permiso
+        window.Notification.requestPermission = function(callback) {
+            if (callback) callback('granted');
+            return Promise.resolve('granted');
+        };
+        
+        // Soporte para ServiceWorker showNotification (Teams, Slack)
+        if (navigator.serviceWorker) {
+            const originalRegister = navigator.serviceWorker.register;
+            if (originalRegister) {
+                // Permitimos el registro normal del service worker
+            }
+        }
+    })();
+    """;
     
     // MARK: - Utilidades
     
