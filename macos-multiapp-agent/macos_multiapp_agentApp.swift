@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct macos_multiapp_agentApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
         // Solicitar permisos de notificación al iniciar la app.
@@ -20,6 +21,18 @@ struct macos_multiapp_agentApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+        }
+        
+        // Un ícono en la barra de menú que permite al usuario gestionar la app
+        // cuando esta corre en segundo plano sin ventanas activas.
+        MenuBarExtra("Workspace", systemImage: "macwindow.badge.plus") {
+            Button("Mostrar Ventana Principal") {
+                appDelegate.showMainWindow()
+            }
+            Divider()
+            Button("Cerrar Aplicación") {
+                NSApplication.shared.terminate(nil)
+            }
         }
     }
 }

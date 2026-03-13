@@ -69,6 +69,8 @@ struct ContentView: View {
                 selectedTabId = first.id
             }
         }
+        // Intercepta el botón de cerrado de la ventana para ocultarla y no destruirla
+        .background(WindowAccessor())
     }
     
     @ViewBuilder
