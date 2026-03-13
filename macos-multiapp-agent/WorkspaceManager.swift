@@ -77,4 +77,9 @@ class WorkspaceManager: ObservableObject {
         guard index >= 0 && index < tabs.count else { return }
         tabs.remove(at: index)
     }
+    
+    // Elimina una pestaña según su ID único
+    func removeTab(withId id: UUID) {
+        tabs.removeAll { $0.id == id }
+    }
 }
