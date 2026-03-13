@@ -7,6 +7,46 @@ struct WorkspaceWebView: NSViewRepresentable {
     let urlString: String
     let sessionID: String
 
+    // MARK: - Coordinator (delegados de WKWebView)
+    
+    /// Coordinator maneja eventos del WKWebView como apertura de nuevas ventanas
+    /// y decisiones de navegación. Esto es clave para que servicios como Slack
+    /// funcionen, ya que intentan abrir enlaces en nuevas pestañas.
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator: NSObject, WKUIDelegate, WKNavigationDelegate {
+        
+        /// Se invoca cuando una página intenta abrir una nueva ventana/pestaña
+        /// (ej: window.open(), target="_blank", etc.).
+        /// En lugar de ignorar la solicitud, cargamos la URL en el mismo WebView.
+        func webView(
+            _ webView: WKWebView,
+            createWebViewWith configuration: WKWebViewConfiguration,
+            for navigationAction: WKNavigationAction,
+            windowFeatures: WKWindowFeatures
+        ) -> WKWebView? {
+            // Si el frame destino es nil, significa que quiere abrir nueva ventana.
+            if navigationAction.targetFrame == nil || !(navigationAction.targetFrame!.isMainFrame) {
+                webView.load(navigationAction.request)
+            }
+            // Retornamos nil para indicar que NO creamos un WKWebView nuevo.
+            return nil
+        }
+        
+        /// Maneja decisiones de navegación para permitir redirecciones normales.
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+            decisionHandler(.allow)
+        }
+    }
+
+    // MARK: - NSViewRepresentable
+
     func makeNSView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         
@@ -21,7 +61,17 @@ struct WorkspaceWebView: NSViewRepresentable {
         // Optimizaciones de rendimiento y comportamiento
         configuration.allowsAirPlayForMediaPlayback = false
         
+        // Permitimos JavaScript para abrir ventanas sin interacción del usuario.
+        // Necesario para flujos de autenticación de Slack, Teams, etc.
+        let preferences = WKPreferences()
+        preferences.javaScriptCanOpenWindowsAutomatically = true
+        configuration.preferences = preferences
+        
         let webView = WKWebView(frame: .zero, configuration: configuration)
+        
+        // Asignamos los delegados del Coordinator
+        webView.uiDelegate = context.coordinator
+        webView.navigationDelegate = context.coordinator
         
         // User-Agent de Safari 26 (o superior) para soportar Slack y MS Teams.
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
@@ -37,6 +87,8 @@ struct WorkspaceWebView: NSViewRepresentable {
     func updateNSView(_ nsView: WKWebView, context: Context) {
         // No se requiere actualización dinámica por ahora.
     }
+    
+    // MARK: - Utilidades
     
     /// Genera un UUID determinista a partir de un string de sesión.
     /// Esto asegura que el mismo sessionID siempre acceda al mismo DataStore persistente.
