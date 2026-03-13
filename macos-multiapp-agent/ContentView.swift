@@ -1,57 +1,49 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var workspaceManager = WorkspaceManager()
+    @State private var showingAddTab = false
+    
     var body: some View {
         TabView {
-            // PESTAÑA 1: COMUNICACIÓN
-            CommunicationView()
-                .tabItem {
-                    Label("Comunicación", systemImage: "bubble.left.and.bubble.right")
-                }
-            
-            // PESTAÑA 2: TAREAS
-            TasksView()
-                .tabItem {
-                    Label("Tareas", systemImage: "checklist")
-                }
+            ForEach(workspaceManager.tabs) { tab in
+                buildTabContent(for: tab)
+                    .tabItem {
+                        Label(tab.name, systemImage: "app.window")
+                    }
+            }
         }
         .frame(minWidth: 1000, minHeight: 700)
-    }
-}
-
-// MARK: - Vistas de Pestañas
-
-struct CommunicationView: View {
-    var body: some View {
-        // HSplitView principal (50% / 50%)
-        HSplitView {
-            // Mitad Izquierda: WhatsApp
-            WorkspaceWebView(urlString: "https://web.whatsapp.com", sessionID: "whatsapp")
-                .frame(minWidth: 300)
-            
-            // Mitad Derecha: Teams arriba, Slack abajo
-            VSplitView {
-                WorkspaceWebView(urlString: "https://teams.microsoft.com/v2/", sessionID: "teams")
-                    .frame(minHeight: 200)
-                
-                WorkspaceWebView(urlString: "https://app.slack.com", sessionID: "slack")
-                    .frame(minHeight: 200)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    showingAddTab = true
+                }) {
+                    Label("Añadir Pestaña", systemImage: "plus")
+                }
+                .help("Añadir una nueva pestaña personalizada")
             }
-            .frame(minWidth: 300)
+        }
+        .sheet(isPresented: $showingAddTab) {
+            EditTabView(workspaceManager: workspaceManager)
         }
     }
-}
-
-struct TasksView: View {
-    var body: some View {
-        // Layout para dos instancias de Google Tasks
-        // Utilizo HSplitView para una vista lado a lado cómoda para tareas
-        HSplitView {
-            WorkspaceWebView(urlString: "https://tasks.google.com/tasks/", sessionID: "tasks_personal")
-                .frame(minWidth: 400)
-            
-            WorkspaceWebView(urlString: "https://tasks.google.com/tasks/", sessionID: "tasks_work")
-                .frame(minWidth: 400)
+    
+    @ViewBuilder
+    private func buildTabContent(for tab: WorkspaceTab) -> some View {
+        if tab.layout == .fullScreen, let firstService = tab.services.first {
+            WorkspaceWebView(urlString: firstService.service.url, sessionID: firstService.sessionID)
+                .frame(minWidth: 300)
+        } else if tab.layout == .verticalSplit, tab.services.count >= 2 {
+            HSplitView {
+                WorkspaceWebView(urlString: tab.services[0].service.url, sessionID: tab.services[0].sessionID)
+                    .frame(minWidth: 300)
+                
+                WorkspaceWebView(urlString: tab.services[1].service.url, sessionID: tab.services[1].sessionID)
+                    .frame(minWidth: 300)
+            }
+        } else {
+            Text("Configuración de pestaña no válida")
         }
     }
 }
