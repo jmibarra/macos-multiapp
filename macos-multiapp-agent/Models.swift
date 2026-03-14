@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 // Servicio web disponible
 enum Service: String, CaseIterable, Identifiable, Codable {

@@ -82,4 +82,14 @@ class WorkspaceManager: ObservableObject {
     func removeTab(withId id: UUID) {
         tabs.removeAll { $0.id == id }
     }
+    
+    // Mueve una pestaña desde su posición actual a la posición de otra pestaña (para drag and drop)
+    func moveTab(fromId: UUID, toId: UUID) {
+        guard fromId != toId,
+              let fromIndex = tabs.firstIndex(where: { $0.id == fromId }),
+              let toIndex = tabs.firstIndex(where: { $0.id == toId }) else { return }
+        
+        let tab = tabs.remove(at: fromIndex)
+        tabs.insert(tab, at: toIndex)
+    }
 }

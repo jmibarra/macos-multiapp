@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @StateObject private var workspaceManager = WorkspaceManager()
@@ -9,14 +10,39 @@ struct ContentView: View {
     @State private var tabToDelete: UUID?
     @State private var showingDeleteAlert = false
     
+    // Estado del drag and drop
+    @State private var draggedTabId: UUID?
+    @State private var dropTargetId: UUID?
+    
     var body: some View {
-        TabView(selection: $selectedTabId) {
-            ForEach(workspaceManager.tabs) { tab in
+        VStack(spacing: 0) {
+            // MARK: - Tab Bar Custom con Drag & Drop
+            tabBar
+            
+            Divider()
+            
+            // MARK: - Contenido de la pestaña activa
+            // .id() fuerza a SwiftUI a reconstruir el contenido cuando cambia la pestaña activa
+            if let selectedId = selectedTabId,
+               let tab = workspaceManager.tabs.first(where: { $0.id == selectedId }) {
                 buildTabContent(for: tab)
-                    .tabItem {
-                        Label(tab.name, systemImage: "app.window")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .id(selectedId)
+            } else {
+                // Estado vacío cuando no hay pestañas
+                VStack(spacing: 12) {
+                    Image(systemName: "macwindow.badge.plus")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    Text("No hay pestañas configuradas")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                    Button("Crear Primera Pestaña") {
+                        showingAddTab = true
                     }
-                    .tag(tab.id as UUID?)
+                    .buttonStyle(.borderedProminent)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(minWidth: 1000, minHeight: 700)
@@ -52,7 +78,7 @@ struct ContentView: View {
             Button("Eliminar", role: .destructive) {
                 if let id = tabToDelete {
                     workspaceManager.removeTab(withId: id)
-                    // Seleccionar la primera pestaña disponible si la borrada era la actual y quedan pestañas
+                    // Seleccionar la primera pestaña disponible si la borrada era la actual
                     if selectedTabId == id, let first = workspaceManager.tabs.first {
                         selectedTabId = first.id
                     } else if workspaceManager.tabs.isEmpty {
@@ -73,6 +99,98 @@ struct ContentView: View {
         .background(WindowAccessor())
     }
     
+    // MARK: - Tab Bar con Drag & Drop
+    
+    private var tabBar: some View {
+        HStack {
+            Spacer()
+            
+            HStack(spacing: 1) {
+                ForEach(workspaceManager.tabs) { tab in
+                    tabItemView(for: tab)
+                }
+            }
+            .padding(3)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(NSColor.controlBackgroundColor))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+            )
+            
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+    
+    // Cada item individual del tab bar
+    private func tabItemView(for tab: WorkspaceTab) -> some View {
+        let isSelected = selectedTabId == tab.id
+        let isDropTarget = dropTargetId == tab.id && draggedTabId != tab.id
+        
+        return HStack(spacing: 5) {
+            Image(systemName: "macwindow")
+                .font(.system(size: 11))
+            Text(tab.name)
+                .font(.system(size: 12, weight: isSelected ? .medium : .regular))
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .background(
+            Group {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(NSColor.controlColor))
+                        .shadow(color: .black.opacity(0.1), radius: 1, y: 0.5)
+                } else {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.clear)
+                }
+            }
+        )
+        .overlay(
+            // Indicador visual del drop target (línea azul a la izquierda)
+            HStack(spacing: 0) {
+                if isDropTarget {
+                    Capsule()
+                        .fill(Color.accentColor)
+                        .frame(width: 2.5)
+                        .padding(.vertical, 4)
+                        .transition(.opacity)
+                }
+                Spacer()
+            }
+        )
+        .foregroundColor(isSelected ? .primary : .secondary)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            selectedTabId = tab.id
+        }
+        // Drag: iniciar arrastre de esta pestaña
+        .onDrag {
+            draggedTabId = tab.id
+            return NSItemProvider(object: tab.id.uuidString as NSString)
+        }
+        // Drop: soltar sobre esta pestaña para reordenar
+        .onDrop(of: [UTType.text], delegate: TabDropDelegate(
+            targetTabId: tab.id,
+            workspaceManager: workspaceManager,
+            draggedTabId: $draggedTabId,
+            dropTargetId: $dropTargetId
+        ))
+        // Opacidad reducida para la pestaña que se está arrastrando
+        .opacity(draggedTabId == tab.id ? 0.4 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isDropTarget)
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
+    }
+    
+    // MARK: - Contenido de las pestañas
+    
     // Helper para construir un WebView a partir de un ServiceInstance
     @ViewBuilder
     private func webView(for service: ServiceInstance) -> some View {
@@ -88,25 +206,21 @@ struct ContentView: View {
         if s.count >= tab.layout.serviceCount {
             switch tab.layout {
             case .single:
-                // 1×1: Pantalla completa
                 webView(for: s[0])
                 
             case .columns2:
-                // 1×2: Dos columnas lado a lado
                 HSplitView {
                     webView(for: s[0])
                     webView(for: s[1])
                 }
                 
             case .rows2:
-                // 2×1: Dos filas apiladas
                 VSplitView {
                     webView(for: s[0])
                     webView(for: s[1])
                 }
                 
             case .grid2x2:
-                // 2×2: Grilla de 4 servicios
                 VSplitView {
                     HSplitView {
                         webView(for: s[0])
@@ -119,7 +233,6 @@ struct ContentView: View {
                 }
                 
             case .columns3:
-                // 1×3: Tres columnas
                 HSplitView {
                     webView(for: s[0])
                     webView(for: s[1])
@@ -127,7 +240,6 @@ struct ContentView: View {
                 }
                 
             case .rows3:
-                // 3×1: Tres filas apiladas
                 VSplitView {
                     webView(for: s[0])
                     webView(for: s[1])
@@ -135,7 +247,6 @@ struct ContentView: View {
                 }
                 
             case .leftSplit:
-                // 1(2×1)×1: Columna izquierda dividida en 2 + columna derecha completa
                 HSplitView {
                     VSplitView {
                         webView(for: s[0])
@@ -145,7 +256,6 @@ struct ContentView: View {
                 }
                 
             case .rightSplit:
-                // 1×1(2×1): Columna izquierda completa + columna derecha dividida en 2
                 HSplitView {
                     webView(for: s[0])
                     VSplitView {
@@ -157,6 +267,54 @@ struct ContentView: View {
         } else {
             Text("Configuración de pestaña no válida: se necesitan \(tab.layout.serviceCount) servicios")
         }
+    }
+}
+
+// MARK: - Drop Delegate para el reordenamiento de pestañas
+
+/// Maneja la lógica de drag and drop entre pestañas.
+/// Cuando el usuario arrastra una pestaña sobre otra, reordena el array en WorkspaceManager.
+struct TabDropDelegate: DropDelegate {
+    let targetTabId: UUID
+    let workspaceManager: WorkspaceManager
+    @Binding var draggedTabId: UUID?
+    @Binding var dropTargetId: UUID?
+    
+    // Se invoca cuando el drag entra en la zona de esta pestaña
+    func dropEntered(info: DropInfo) {
+        dropTargetId = targetTabId
+        
+        // Reordenar en tiempo real mientras se arrastra
+        guard let draggedId = draggedTabId, draggedId != targetTabId else { return }
+        
+        withAnimation(.easeInOut(duration: 0.2)) {
+            workspaceManager.moveTab(fromId: draggedId, toId: targetTabId)
+        }
+    }
+    
+    // Se invoca cuando el usuario suelta el item
+    func performDrop(info: DropInfo) -> Bool {
+        // Limpiar estado de drag
+        draggedTabId = nil
+        dropTargetId = nil
+        return true
+    }
+    
+    // Se invoca cuando el drag sale de la zona de esta pestaña
+    func dropExited(info: DropInfo) {
+        if dropTargetId == targetTabId {
+            dropTargetId = nil
+        }
+    }
+    
+    // Validar que se puede hacer drop aquí
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: .move)
+    }
+    
+    // Valida que el item arrastrado es compatible
+    func validateDrop(info: DropInfo) -> Bool {
+        return draggedTabId != nil
     }
 }
 

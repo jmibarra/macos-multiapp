@@ -49,6 +49,7 @@ Inspirado en [Franz](https://meetfranz.com/) y [Rambox](https://rambox.app/), pe
 
 - **Crear pestañas personalizadas** con un nombre y layout a elección.
 - **Eliminar pestañas** con confirmación para evitar borrados accidentales.
+- **Drag & Drop** — Arrastra las pestañas para reordenarlas con reordenamiento visual en tiempo real.
 - **Persistencia automática** — La configuración de pestañas se guarda en `UserDefaults` y se restaura al reiniciar la app.
 - Pestañas por defecto preconfiguradas (Comunicación y Tareas) en la primera ejecución.
 
@@ -410,7 +411,7 @@ Este proyecto sigue un código de conducta basado en el respeto mutuo. Se espera
 - [ ] Exportar/importar configuración de workspace
 - [ ] Soporte para URLs personalizadas (servicios self-hosted)
 - [ ] Barra lateral colapsable como alternativa a pestañas
-- [ ] Drag & drop para reordenar pestañas
+- [x] Drag & drop para reordenar pestañas
 
 ---
 
