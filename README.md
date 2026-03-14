@@ -48,6 +48,7 @@ Inspirado en [Franz](https://meetfranz.com/) y [Rambox](https://rambox.app/), pe
 ### 🗂️ Sistema de Pestañas Dinámicas
 
 - **Crear pestañas personalizadas** con un nombre y layout a elección.
+- **Editar pestañas existentes** — Renombra tus pestañas, cambia su disposición F×C o reconfigura los servicios sin perder los inicios de sesión anteriores.
 - **Eliminar pestañas** con confirmación para evitar borrados accidentales.
 - **Drag & Drop** — Arrastra las pestañas para reordenarlas con reordenamiento visual en tiempo real.
 - **Persistencia automática** — La configuración de pestañas se guarda en `UserDefaults` y se restaura al reiniciar la app.
@@ -405,7 +406,7 @@ Este proyecto sigue un código de conducta basado en el respeto mutuo. Se espera
 - [ ] Soportar más servicios (Discord, Telegram, Gmail, Notion, etc.)
 - [x] Layouts de grilla (2x2, 3x1, etc.)
 - [ ] Atajos de teclado para cambiar entre pestañas
-- [ ] Edición de pestañas existentes (renombrar, cambiar servicios)
+- [x] Edición de pestañas existentes (renombrar, cambiar servicios)
 - [ ] Íconos personalizados por servicio en las pestañas
 - [ ] Temas claros/oscuros personalizables
 - [ ] Exportar/importar configuración de workspace

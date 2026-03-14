@@ -153,6 +153,9 @@ struct EditTabView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var workspaceManager: WorkspaceManager
     
+    // Tab a editar (nil si es creación nueva)
+    var tabToEdit: WorkspaceTab?
+    
     @State private var tabName: String = ""
     @State private var selectedLayout: LayoutType = .single
     
@@ -175,11 +178,11 @@ struct EditTabView: View {
                     .edgesIgnoringSafeArea(.top)
                 
                 VStack(spacing: 8) {
-                    Image(systemName: "macwindow.badge.plus")
+                    Image(systemName: tabToEdit == nil ? "macwindow.badge.plus" : "pencil.and.outline")
                         .font(.system(size: 32))
                         .foregroundColor(.accentColor)
                     
-                    Text("Nueva Pestaña")
+                    Text(tabToEdit == nil ? "Nueva Pestaña" : "Editar Pestaña")
                         .font(.title2)
                         .fontWeight(.semibold)
                 }
@@ -285,7 +288,7 @@ struct EditTabView: View {
                 
                 Spacer()
                 
-                Button("Crear Pestaña") {
+                Button(tabToEdit == nil ? "Crear Pestaña" : "Guardar Cambios") {
                     saveTab()
                 }
                 .buttonStyle(.borderedProminent)
@@ -298,6 +301,17 @@ struct EditTabView: View {
             .background(Color(NSColor.windowBackgroundColor))
         }
         .frame(width: 520, height: 600)
+        .onAppear {
+            if let tab = tabToEdit {
+                tabName = tab.name
+                selectedLayout = tab.layout
+                for (index, serviceInstance) in tab.services.enumerated() {
+                    if index < selectedServices.count {
+                        selectedServices[index] = serviceInstance.service
+                    }
+                }
+            }
+        }
     }
     
     // Color del indicador, debe coincidir con la paleta del LayoutPreviewView
@@ -315,11 +329,22 @@ struct EditTabView: View {
         // Tomar solo los servicios necesarios según el layout seleccionado
         let servicesToSave = Array(selectedServices.prefix(selectedLayout.serviceCount))
         
-        workspaceManager.addTab(
-            name: tabName.trimmingCharacters(in: .whitespacesAndNewlines),
-            layout: selectedLayout,
-            services: servicesToSave
-        )
+        let finalName = tabName.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if let tab = tabToEdit {
+            workspaceManager.updateTab(
+                id: tab.id,
+                name: finalName,
+                layout: selectedLayout,
+                services: servicesToSave
+            )
+        } else {
+            workspaceManager.addTab(
+                name: finalName,
+                layout: selectedLayout,
+                services: servicesToSave
+            )
+        }
         
         dismiss()
     }

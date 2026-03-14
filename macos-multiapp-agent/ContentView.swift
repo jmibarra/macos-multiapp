@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @StateObject private var workspaceManager = WorkspaceManager()
     @State private var showingAddTab = false
+    @State private var tabToEdit: WorkspaceTab?
     
     // Control de la pestaña activa y borrado
     @State private var selectedTabId: UUID?
@@ -75,8 +76,8 @@ struct ContentView: View {
                 .help("Añadir una nueva pestaña personalizada")
             }
         }
-        .sheet(isPresented: $showingAddTab) {
-            EditTabView(workspaceManager: workspaceManager)
+        .sheet(isPresented: $showingAddTab, onDismiss: { tabToEdit = nil }) {
+            EditTabView(workspaceManager: workspaceManager, tabToEdit: tabToEdit)
         }
         .alert("¿Eliminar pestaña?", isPresented: $showingDeleteAlert) {
             Button("Cancelar", role: .cancel) { }
@@ -192,6 +193,23 @@ struct ContentView: View {
         .opacity(draggedTabId == tab.id ? 0.4 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isDropTarget)
         .animation(.easeInOut(duration: 0.15), value: isSelected)
+        .contextMenu {
+            Button {
+                tabToEdit = tab
+                showingAddTab = true
+            } label: {
+                Label("Editar Pestaña", systemImage: "pencil")
+            }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+                tabToDelete = tab.id
+                showingDeleteAlert = true
+            } label: {
+                Label("Eliminar Pestaña", systemImage: "trash")
+            }
+        }
     }
     
     // MARK: - Contenido de las pestañas

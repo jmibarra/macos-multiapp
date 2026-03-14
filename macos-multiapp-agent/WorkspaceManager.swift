@@ -92,4 +92,29 @@ class WorkspaceManager: ObservableObject {
         let tab = tabs.remove(at: fromIndex)
         tabs.insert(tab, at: toIndex)
     }
+    
+    // Actualiza una pestaña existente, preservando los sessionID de los servicios que se mantienen
+    func updateTab(id: UUID, name: String, layout: LayoutType, services: [Service]) {
+        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
+        
+        let existingTab = tabs[index]
+        let existingServices = existingTab.services
+        var newInstances: [ServiceInstance] = []
+        
+        for (i, service) in services.enumerated() {
+            // Si en esta posición ya había un servicio del mismo tipo, preservamos su sessionID
+            // para que no se pierda la sesión (cookies, login, etc)
+            if i < existingServices.count && existingServices[i].service == service {
+                newInstances.append(existingServices[i])
+            } else {
+                // Es un servicio nuevo en esta posición o cambió de tipo, generamos uno nuevo
+                let suffix = "\(Date().timeIntervalSince1970)_\(i)"
+                newInstances.append(ServiceInstance(service: service, customSuffix: suffix))
+            }
+        }
+        
+        tabs[index].name = name
+        tabs[index].layout = layout
+        tabs[index].services = newInstances
+    }
 }
