@@ -38,7 +38,7 @@ class WorkspaceManager: ObservableObject {
     private func createDefaultTabs() {
         let commsTab = WorkspaceTab(
             name: "Comunicacion",
-            layout: .verticalSplit,
+            layout: .columns2,
             services: [
                 ServiceInstance(service: .whatsapp),
                 ServiceInstance(service: .slack)
@@ -47,7 +47,7 @@ class WorkspaceManager: ObservableObject {
         
         let tasksTab = WorkspaceTab(
             name: "Tareas",
-            layout: .verticalSplit,
+            layout: .columns2,
             services: [
                 ServiceInstance(service: .googleTasks, customSuffix: "personal"),
                 ServiceInstance(service: .googleTasks, customSuffix: "work")

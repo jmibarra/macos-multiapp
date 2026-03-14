@@ -52,12 +52,22 @@ Inspirado en [Franz](https://meetfranz.com/) y [Rambox](https://rambox.app/), pe
 - **Persistencia automática** — La configuración de pestañas se guarda en `UserDefaults` y se restaura al reiniciar la app.
 - Pestañas por defecto preconfiguradas (Comunicación y Tareas) en la primera ejecución.
 
-### 📐 Layouts Flexibles
+### 📐 Layouts Flexibles (Notación F×C)
 
-| Layout                     | Descripción                                                    |
-| -------------------------- | -------------------------------------------------------------- |
-| **Pantalla Completa**      | Un solo servicio web ocupa toda la pestaña                     |
-| **Dividida Verticalmente** | Dos servicios web lado a lado con `HSplitView` redimensionable |
+Sistema de layouts basado en notación **Filas × Columnas**, incluyendo sub-grillas:
+
+| Layout             | Notación     | Servicios | Descripción                                              |
+| ------------------ | ------------ | --------- | -------------------------------------------------------- |
+| Pantalla Completa  | `1×1`        | 1         | Un solo servicio ocupa toda la pestaña                   |
+| 2 Columnas         | `1×2`        | 2         | Dos servicios lado a lado (`HSplitView`)                 |
+| 2 Filas            | `2×1`        | 2         | Dos servicios apilados (`VSplitView`)                    |
+| Grilla 2×2         | `2×2`        | 4         | Grilla de 4 servicios en 2 filas y 2 columnas            |
+| 3 Columnas         | `1×3`        | 3         | Tres servicios en columnas                               |
+| 3 Filas            | `3×1`        | 3         | Tres servicios apilados                                  |
+| Izq. Dividido      | `1(2×1)×1`   | 3         | Columna izq dividida en 2 + columna der entera           |
+| Der. Dividido      | `1×1(2×1)`   | 3         | Columna izq entera + columna der dividida en 2           |
+
+El formulario de creación incluye **mini previews visuales** con colores diferenciados para cada panel, facilitando la comprensión del layout antes de crearlo.
 
 ### 🔒 Aislamiento de Sesiones
 
@@ -240,8 +250,8 @@ Para que los WebViews puedan cargar contenido web, es necesario habilitar las co
 
 1. Haz clic en el botón **+** (Añadir Pestaña) en la toolbar.
 2. Asigna un nombre a la pestaña.
-3. Selecciona el layout: **Pantalla Completa** o **Dividida Verticalmente**.
-4. Elige los servicios web que deseas incluir.
+3. Selecciona el layout entre las 8 opciones disponibles usando los **mini previews visuales**.
+4. Elige los servicios web para cada posición del layout (los pickers se ajustan automáticamente).
 5. Haz clic en **Crear Pestaña**.
 
 ### Eliminar una pestaña
@@ -371,7 +381,7 @@ git push origin feature/soporte-discord
 ### Áreas donde puedes contribuir
 
 - 🌐 **Agregar nuevos servicios** — Añadir más servicios al enum `Service` en `Models.swift`.
-- 📐 **Nuevos layouts** — Implementar layouts más complejos (grillas, 3 paneles, etc.).
+- 📐 **Nuevos layouts** — Implementar layouts aún más complejos o sub-grillas adicionales.
 - 🎨 **Mejoras de UI/UX** — Íconos personalizados por servicio, temas, etc.
 - 🔔 **Mejorar notificaciones** — Soporte para push notifications de ServiceWorkers.
 - ⌨️ **Atajos de teclado** — Cambiar entre pestañas con `Cmd + 1/2/3...`.
@@ -392,7 +402,7 @@ Este proyecto sigue un código de conducta basado en el respeto mutuo. Se espera
 ## 🗺️ Roadmap
 
 - [ ] Soportar más servicios (Discord, Telegram, Gmail, Notion, etc.)
-- [ ] Layouts de grilla (2x2, 3x1, etc.)
+- [x] Layouts de grilla (2x2, 3x1, etc.)
 - [ ] Atajos de teclado para cambiar entre pestañas
 - [ ] Edición de pestañas existentes (renombrar, cambiar servicios)
 - [ ] Íconos personalizados por servicio en las pestañas

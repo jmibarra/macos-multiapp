@@ -73,21 +73,89 @@ struct ContentView: View {
         .background(WindowAccessor())
     }
     
+    // Helper para construir un WebView a partir de un ServiceInstance
+    @ViewBuilder
+    private func webView(for service: ServiceInstance) -> some View {
+        WorkspaceWebView(urlString: service.service.url, sessionID: service.sessionID)
+            .frame(minWidth: 200, minHeight: 150)
+    }
+    
     @ViewBuilder
     private func buildTabContent(for tab: WorkspaceTab) -> some View {
-        if tab.layout == .fullScreen, let firstService = tab.services.first {
-            WorkspaceWebView(urlString: firstService.service.url, sessionID: firstService.sessionID)
-                .frame(minWidth: 300)
-        } else if tab.layout == .verticalSplit, tab.services.count >= 2 {
-            HSplitView {
-                WorkspaceWebView(urlString: tab.services[0].service.url, sessionID: tab.services[0].sessionID)
-                    .frame(minWidth: 300)
+        let s = tab.services
+        
+        // Validación genérica: verificar que hay suficientes servicios para el layout
+        if s.count >= tab.layout.serviceCount {
+            switch tab.layout {
+            case .single:
+                // 1×1: Pantalla completa
+                webView(for: s[0])
                 
-                WorkspaceWebView(urlString: tab.services[1].service.url, sessionID: tab.services[1].sessionID)
-                    .frame(minWidth: 300)
+            case .columns2:
+                // 1×2: Dos columnas lado a lado
+                HSplitView {
+                    webView(for: s[0])
+                    webView(for: s[1])
+                }
+                
+            case .rows2:
+                // 2×1: Dos filas apiladas
+                VSplitView {
+                    webView(for: s[0])
+                    webView(for: s[1])
+                }
+                
+            case .grid2x2:
+                // 2×2: Grilla de 4 servicios
+                VSplitView {
+                    HSplitView {
+                        webView(for: s[0])
+                        webView(for: s[1])
+                    }
+                    HSplitView {
+                        webView(for: s[2])
+                        webView(for: s[3])
+                    }
+                }
+                
+            case .columns3:
+                // 1×3: Tres columnas
+                HSplitView {
+                    webView(for: s[0])
+                    webView(for: s[1])
+                    webView(for: s[2])
+                }
+                
+            case .rows3:
+                // 3×1: Tres filas apiladas
+                VSplitView {
+                    webView(for: s[0])
+                    webView(for: s[1])
+                    webView(for: s[2])
+                }
+                
+            case .leftSplit:
+                // 1(2×1)×1: Columna izquierda dividida en 2 + columna derecha completa
+                HSplitView {
+                    VSplitView {
+                        webView(for: s[0])
+                        webView(for: s[1])
+                    }
+                    webView(for: s[2])
+                }
+                
+            case .rightSplit:
+                // 1×1(2×1): Columna izquierda completa + columna derecha dividida en 2
+                HSplitView {
+                    webView(for: s[0])
+                    VSplitView {
+                        webView(for: s[1])
+                        webView(for: s[2])
+                    }
+                }
             }
         } else {
-            Text("Configuración de pestaña no válida")
+            Text("Configuración de pestaña no válida: se necesitan \(tab.layout.serviceCount) servicios")
         }
     }
 }
