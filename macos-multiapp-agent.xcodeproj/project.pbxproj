@@ -6,11 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		16278C652F66183B005F7031 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 16E85D2B2F636BF3008256A3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 16E85D322F636BF3008256A3;
+			remoteInfo = "macos-multiapp-agent";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		16278C612F66183B005F7031 /* macos-multiapp-agentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "macos-multiapp-agentTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		16E85D332F636BF3008256A3 /* WorkHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WorkHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		16278C622F66183B005F7031 /* macos-multiapp-agentTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "macos-multiapp-agentTests";
+			sourceTree = "<group>";
+		};
 		16E85D352F636BF3008256A3 /* macos-multiapp-agent */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "macos-multiapp-agent";
@@ -19,6 +35,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		16278C5E2F66183B005F7031 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		16E85D302F636BF3008256A3 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				16E85D352F636BF3008256A3 /* macos-multiapp-agent */,
+				16278C622F66183B005F7031 /* macos-multiapp-agentTests */,
 				16E85D342F636BF3008256A3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				16E85D332F636BF3008256A3 /* WorkHub.app */,
+				16278C612F66183B005F7031 /* macos-multiapp-agentTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +73,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		16278C602F66183B005F7031 /* macos-multiapp-agentTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 16278C692F66183B005F7031 /* Build configuration list for PBXNativeTarget "macos-multiapp-agentTests" */;
+			buildPhases = (
+				16278C5D2F66183B005F7031 /* Sources */,
+				16278C5E2F66183B005F7031 /* Frameworks */,
+				16278C5F2F66183B005F7031 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				16278C662F66183B005F7031 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				16278C622F66183B005F7031 /* macos-multiapp-agentTests */,
+			);
+			name = "macos-multiapp-agentTests";
+			packageProductDependencies = (
+			);
+			productName = "macos-multiapp-agentTests";
+			productReference = 16278C612F66183B005F7031 /* macos-multiapp-agentTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		16E85D322F636BF3008256A3 /* macos-multiapp-agent */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 16E85D3E2F636BF4008256A3 /* Build configuration list for PBXNativeTarget "macos-multiapp-agent" */;
@@ -80,6 +128,10 @@
 				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
+					16278C602F66183B005F7031 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 16E85D322F636BF3008256A3;
+					};
 					16E85D322F636BF3008256A3 = {
 						CreatedOnToolsVersion = 26.3;
 					};
@@ -100,11 +152,19 @@
 			projectRoot = "";
 			targets = (
 				16E85D322F636BF3008256A3 /* macos-multiapp-agent */,
+				16278C602F66183B005F7031 /* macos-multiapp-agentTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		16278C5F2F66183B005F7031 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		16E85D312F636BF3008256A3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +175,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		16278C5D2F66183B005F7031 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		16E85D2F2F636BF3008256A3 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +191,53 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		16278C662F66183B005F7031 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 16E85D322F636BF3008256A3 /* macos-multiapp-agent */;
+			targetProxy = 16278C652F66183B005F7031 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		16278C672F66183B005F7031 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "jmi.macos-multiapp-agentTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WorkHub.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WorkHub";
+			};
+			name = Debug;
+		};
+		16278C682F66183B005F7031 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "jmi.macos-multiapp-agentTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WorkHub.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WorkHub";
+			};
+			name = Release;
+		};
 		16E85D3C2F636BF4008256A3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -334,6 +447,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		16278C692F66183B005F7031 /* Build configuration list for PBXNativeTarget "macos-multiapp-agentTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				16278C672F66183B005F7031 /* Debug */,
+				16278C682F66183B005F7031 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		16E85D2E2F636BF3008256A3 /* Build configuration list for PBXProject "macos-multiapp-agent" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
