@@ -21,14 +21,10 @@ struct ContentView: View {
             
             Divider()
             
-            // MARK: - Contenido de la pestaña activa
-            // .id() fuerza a SwiftUI a reconstruir el contenido cuando cambia la pestaña activa
-            if let selectedId = selectedTabId,
-               let tab = workspaceManager.tabs.first(where: { $0.id == selectedId }) {
-                buildTabContent(for: tab)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .id(selectedId)
-            } else {
+            // MARK: - Contenido de las pestañas
+            // Usamos un ZStack para mantener todas las pestañas en la vista (vivas en segundo plano)
+            // de modo que no se recarguen al cambiar de pestaña.
+            if workspaceManager.tabs.isEmpty {
                 // Estado vacío cuando no hay pestañas
                 VStack(spacing: 12) {
                     Image(systemName: "macwindow.badge.plus")
@@ -43,6 +39,15 @@ struct ContentView: View {
                     .buttonStyle(.borderedProminent)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ZStack {
+                    ForEach(workspaceManager.tabs) { tab in
+                        buildTabContent(for: tab)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .opacity(tab.id == selectedTabId ? 1 : 0)
+                            .allowsHitTesting(tab.id == selectedTabId) // Evitar clics en las pestañas ocultas
+                    }
+                }
             }
         }
         .frame(minWidth: 1000, minHeight: 700)
