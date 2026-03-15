@@ -47,6 +47,7 @@ struct ContentView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .opacity(tab.id == selectedTabId ? 1 : 0)
                             .allowsHitTesting(tab.id == selectedTabId) // Evitar clics en las pestañas ocultas
+                            .zIndex(tab.id == selectedTabId ? 1 : 0) // Traer la pestaña activa al frente para no bloquear el arrastre de los SplitViews
                     }
                 }
             }
