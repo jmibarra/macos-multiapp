@@ -139,6 +139,7 @@ struct ServiceInstance: Identifiable, Codable {
 struct WorkspaceTab: Identifiable, Codable {
     var id = UUID()
     var name: String
+    var icon: String? // SF Symbol opcional para retro-compatibilidad
     var layout: LayoutType
     var services: [ServiceInstance]
 }

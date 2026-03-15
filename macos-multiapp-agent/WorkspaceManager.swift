@@ -38,6 +38,7 @@ class WorkspaceManager: ObservableObject {
     private func createDefaultTabs() {
         let commsTab = WorkspaceTab(
             name: "Comunicacion",
+            icon: "message.fill",
             layout: .columns2,
             services: [
                 ServiceInstance(service: .whatsapp),
@@ -47,6 +48,7 @@ class WorkspaceManager: ObservableObject {
         
         let tasksTab = WorkspaceTab(
             name: "Tareas",
+            icon: "checkmark.circle",
             layout: .columns2,
             services: [
                 ServiceInstance(service: .googleTasks, customSuffix: "personal"),
@@ -60,7 +62,7 @@ class WorkspaceManager: ObservableObject {
     // MARK: - API
     
     // Agrega una nueva pestana recibiendo los servicios seleccionados
-    func addTab(name: String, layout: LayoutType, services: [Service]) {
+    func addTab(name: String, icon: String?, layout: LayoutType, services: [Service]) {
         var instances: [ServiceInstance] = []
         for (index, service) in services.enumerated() {
             // Asegurar unicamente aislar los sessionID
@@ -68,7 +70,7 @@ class WorkspaceManager: ObservableObject {
             instances.append(ServiceInstance(service: service, customSuffix: suffix))
         }
         
-        let newTab = WorkspaceTab(name: name, layout: layout, services: instances)
+        let newTab = WorkspaceTab(name: name, icon: icon, layout: layout, services: instances)
         tabs.append(newTab)
     }
     
@@ -94,7 +96,7 @@ class WorkspaceManager: ObservableObject {
     }
     
     // Actualiza una pestaña existente, preservando los sessionID de los servicios que se mantienen
-    func updateTab(id: UUID, name: String, layout: LayoutType, services: [Service]) {
+    func updateTab(id: UUID, name: String, icon: String?, layout: LayoutType, services: [Service]) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         
         let existingTab = tabs[index]
@@ -114,6 +116,7 @@ class WorkspaceManager: ObservableObject {
         }
         
         tabs[index].name = name
+        tabs[index].icon = icon
         tabs[index].layout = layout
         tabs[index].services = newInstances
     }

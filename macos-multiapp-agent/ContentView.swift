@@ -139,8 +139,10 @@ struct ContentView: View {
         let isDropTarget = dropTargetId == tab.id && draggedTabId != tab.id
         
         return HStack(spacing: 5) {
-            Image(systemName: "macwindow")
+            Image(systemName: tab.icon ?? "macwindow")
                 .font(.system(size: 11))
+                .foregroundColor(isSelected ? .accentColor : .secondary)
+                
             Text(tab.name)
                 .font(.system(size: 12, weight: isSelected ? .medium : .regular))
                 .lineLimit(1)

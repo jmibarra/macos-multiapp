@@ -35,7 +35,7 @@ struct WorkspaceManagerTests {
         let manager = createCleanManager()
         let initialCount = manager.tabs.count
         
-        manager.addTab(name: "Nueva Pestaña", layout: .single, services: [.googleCalendar])
+        manager.addTab(name: "Nueva Pestaña", icon: nil, layout: .single, services: [.googleCalendar])
         
         #expect(manager.tabs.count == initialCount + 1)
         #expect(manager.tabs.last?.name == "Nueva Pestaña")
@@ -107,11 +107,11 @@ struct WorkspaceManagerTests {
         let originalTasks = ServiceInstance(service: .googleTasks, customSuffix: "oldSuffix")
         
         manager.tabs = [
-            WorkspaceTab(id: tabId, name: "Vieja", layout: .columns2, services: [originalSlack, originalTasks])
+            WorkspaceTab(id: tabId, name: "Vieja", icon: nil, layout: .columns2, services: [originalSlack, originalTasks])
         ]
         
         // Actualizamos cambiando el segundo servicio de Tasks a Teams, y mantenemos Slack
-        manager.updateTab(id: tabId, name: "Nueva", layout: .columns2, services: [.slack, .teams])
+        manager.updateTab(id: tabId, name: "Nueva", icon: nil, layout: .columns2, services: [.slack, .teams])
         
         let updatedTab = manager.tabs.first!
         

@@ -157,10 +157,21 @@ struct EditTabView: View {
     var tabToEdit: WorkspaceTab?
     
     @State private var tabName: String = ""
+    @State private var selectedIcon: String = "macwindow"
     @State private var selectedLayout: LayoutType = .single
     
     // Array dinámico de servicios seleccionados (se ajusta al serviceCount del layout)
     @State private var selectedServices: [Service] = [.googleTasks, .googleTasks, .googleTasks, .googleTasks]
+    
+    // Iconos disponibles para elegir
+    private let availableIcons = [
+        "macwindow", "globe", "briefcase.fill", "message.fill", "envelope.fill",
+        "calendar", "phone.fill", "person.2.fill", "folder.fill", "paperplane.fill",
+        "checkmark.circle", "house.fill", "building.columns.fill", "display"
+    ]
+    
+    // Grid de columnas para los íconos
+    private let iconColumns = Array(repeating: GridItem(.flexible()), count: 7)
     
     // Grid de 4 columnas para los previews de layout
     private let previewColumns = [
@@ -204,6 +215,49 @@ struct EditTabView: View {
                         TextField("Ej: Comunicación, Trabajo...", text: $tabName)
                             .textFieldStyle(.roundedBorder)
                             .controlSize(.large)
+                    }
+                    
+                    // Selector de Icono
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Icono de la pestaña")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        LazyVGrid(columns: iconColumns, spacing: 12) {
+                            ForEach(availableIcons, id: \.self) { icon in
+                                ZStack {
+                                    if selectedIcon == icon {
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color.accentColor.opacity(0.2))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 6)
+                                                    .stroke(Color.accentColor, lineWidth: 1.5)
+                                            )
+                                    } else {
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color(NSColor.controlBackgroundColor))
+                                    }
+                                    
+                                    Image(systemName: icon)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(selectedIcon == icon ? .accentColor : .primary)
+                                }
+                                .frame(height: 36)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.15)) {
+                                        selectedIcon = icon
+                                    }
+                                }
+                            }
+                        }
+                        .padding(12)
+                        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                        )
                     }
                     
                     // Selector de Layout con mini previews
@@ -300,10 +354,11 @@ struct EditTabView: View {
             .padding(.vertical, 16)
             .background(Color(NSColor.windowBackgroundColor))
         }
-        .frame(width: 520, height: 600)
+        .frame(width: 520, height: 720)
         .onAppear {
             if let tab = tabToEdit {
                 tabName = tab.name
+                selectedIcon = tab.icon ?? "macwindow"
                 selectedLayout = tab.layout
                 for (index, serviceInstance) in tab.services.enumerated() {
                     if index < selectedServices.count {
@@ -335,12 +390,14 @@ struct EditTabView: View {
             workspaceManager.updateTab(
                 id: tab.id,
                 name: finalName,
+                icon: selectedIcon,
                 layout: selectedLayout,
                 services: servicesToSave
             )
         } else {
             workspaceManager.addTab(
                 name: finalName,
+                icon: selectedIcon,
                 layout: selectedLayout,
                 services: servicesToSave
             )
