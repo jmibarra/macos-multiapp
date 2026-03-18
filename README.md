@@ -98,6 +98,11 @@ El formulario de creación incluye **mini previews visuales** con colores difere
 - `Cmd + 0` → Restablecer zoom al 100%
 - Zoom independiente por cada WebView, limitado entre 20% y 300%.
 
+### 🔗 Apertura Externa de Enlaces
+
+- Al hacer **Cmd + Click** sobre cualquier enlace, éste se abrirá en el **navegador predeterminado de macOS** en lugar de navegar dentro de la pestaña actual.
+
+
 ### 🏃 Ejecución en Segundo Plano
 
 - Al cerrar la ventana (botón rojo), la app **no se destruye** — se oculta y sigue corriendo en segundo plano.

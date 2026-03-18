@@ -77,25 +77,28 @@ struct WorkspaceWebView: NSViewRepresentable {
             super.init()
         }
         
-        // MARK: - WKScriptMessageHandler (JS Bridge para notificaciones)
+        // MARK: - WKScriptMessageHandler (JS Bridge para notificaciones y clicks)
         
         /// Recibe mensajes del JavaScript inyectado cuando una web app
-        /// intenta crear una notificación via new Notification().
+        /// intenta crear una notificación via new Notification() o cuando
+        /// el usuario hace Cmd+Click en un enlace.
         func userContentController(
             _ userContentController: WKUserContentController,
             didReceive message: WKScriptMessage
         ) {
-            guard message.name == "notificationBridge",
-                  let body = message.body as? [String: Any] else { return }
-            
-            let title = body["title"] as? String ?? sessionID
-            let notifBody = body["body"] as? String ?? ""
-            
-            NotificationManager.shared.showNotification(
-                title: title,
-                body: notifBody,
-                sessionID: sessionID
-            )
+            if message.name == "notificationBridge", let body = message.body as? [String: Any] {
+                let title = body["title"] as? String ?? sessionID
+                let notifBody = body["body"] as? String ?? ""
+                
+                NotificationManager.shared.showNotification(
+                    title: title,
+                    body: notifBody,
+                    sessionID: sessionID
+                )
+            } else if message.name == "cmdClickBridge", let href = message.body as? String, let url = URL(string: href) {
+                // Abrimos la URL en el navegador predeterminado de macOS
+                NSWorkspace.shared.open(url)
+            }
         }
         
         // MARK: - Observación de título para badge count
@@ -140,6 +143,12 @@ struct WorkspaceWebView: NSViewRepresentable {
             for navigationAction: WKNavigationAction,
             windowFeatures: WKWindowFeatures
         ) -> WKWebView? {
+            // Si el usuario mantiene la tecla Cmd presionada, abrimos el link en el navegador predeterminado
+            if navigationAction.modifierFlags.contains(.command), let url = navigationAction.request.url {
+                NSWorkspace.shared.open(url)
+                return nil
+            }
+            
             if navigationAction.targetFrame == nil || !(navigationAction.targetFrame!.isMainFrame) {
                 webView.load(navigationAction.request)
             }
@@ -154,6 +163,17 @@ struct WorkspaceWebView: NSViewRepresentable {
             decidePolicyFor navigationAction: WKNavigationAction,
             decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
         ) {
+            // Si el usuario mantiene la tecla Cmd presionada al hacer click en un link,
+            // abrimos el link en el navegador predeterminado y cancelamos la navegación interna.
+            if navigationAction.navigationType == .linkActivated,
+               navigationAction.modifierFlags.contains(.command),
+               let url = navigationAction.request.url {
+                 
+                NSWorkspace.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
+            
             decisionHandler(.allow)
         }
     }
@@ -193,6 +213,10 @@ struct WorkspaceWebView: NSViewRepresentable {
             context.coordinator,
             name: "notificationBridge"
         )
+        configuration.userContentController.add(
+            context.coordinator,
+            name: "cmdClickBridge"
+        )
         
         // Usamos ZoomableWebView para soportar Cmd++, Cmd+-, Cmd+0
         let webView = ZoomableWebView(frame: .zero, configuration: configuration)
@@ -226,6 +250,22 @@ struct WorkspaceWebView: NSViewRepresentable {
     /// para redirigirlos al handler nativo de Swift.
     private static let notificationBridgeJS = """
     (function() {
+        // Intercepción de Cmd+Click en links
+        document.addEventListener('click', function(e) {
+            // El usuario hizo click mientras mantenía la tecla Cmd (metaKey en Mac)
+            if (e.metaKey || e.ctrlKey) {
+                // Buscamos el elemento <a> más cercano al objetivo del click
+                const anchor = e.target.closest('a');
+                if (anchor && anchor.href) {
+                    // Prevenimos la navegación predeterminada
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Enviamos el href a Swift
+                    window.webkit.messageHandlers.cmdClickBridge.postMessage(anchor.href);
+                }
+            }
+        }, true); // force capture phase
+
         // Guardamos la referencia original por si la necesitamos
         const OriginalNotification = window.Notification;
         
