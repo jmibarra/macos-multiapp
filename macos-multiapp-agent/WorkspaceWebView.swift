@@ -67,7 +67,7 @@ struct WorkspaceWebView: NSViewRepresentable {
         Coordinator(sessionID: sessionID)
     }
     
-    class Coordinator: NSObject, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler {
+    class Coordinator: NSObject, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler, WKDownloadDelegate {
         
         let sessionID: String
         private var titleObservation: NSKeyValueObservation?
@@ -174,7 +174,58 @@ struct WorkspaceWebView: NSViewRepresentable {
                 return
             }
             
+            if navigationAction.shouldPerformDownload {
+                decisionHandler(.download)
+                return
+            }
+            
             decisionHandler(.allow)
+        }
+        
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationResponse: WKNavigationResponse,
+            decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+        ) {
+            if navigationResponse.canShowMIMEType {
+                decisionHandler(.allow)
+            } else {
+                decisionHandler(.download)
+            }
+        }
+        
+        func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
+            download.delegate = self
+        }
+
+        func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+            download.delegate = self
+        }
+        
+        // MARK: - WKDownloadDelegate
+        
+        func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
+            DispatchQueue.main.async {
+                let panel = NSSavePanel()
+                panel.nameFieldStringValue = suggestedFilename
+                
+                if let window = NSApp.keyWindow {
+                    panel.beginSheetModal(for: window) { result in
+                        if result == .OK {
+                            completionHandler(panel.url)
+                        } else {
+                            completionHandler(nil)
+                        }
+                    }
+                } else {
+                    let result = panel.runModal()
+                    if result == .OK {
+                        completionHandler(panel.url)
+                    } else {
+                        completionHandler(nil)
+                    }
+                }
+            }
         }
     }
 
