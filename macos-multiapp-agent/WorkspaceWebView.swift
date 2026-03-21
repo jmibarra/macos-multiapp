@@ -134,6 +134,33 @@ struct WorkspaceWebView: NSViewRepresentable {
         
         // MARK: - WKUIDelegate
         
+        /// Maneja la apertura del panel de selección de archivos (Uploads) para el `<input type="file">`
+        func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
+            let panel = NSOpenPanel()
+            panel.canChooseFiles = true
+            panel.canChooseDirectories = parameters.allowsDirectories
+            panel.allowsMultipleSelection = parameters.allowsMultipleSelection
+            
+            DispatchQueue.main.async {
+                if let window = NSApp.keyWindow {
+                    panel.beginSheetModal(for: window) { result in
+                        if result == .OK {
+                            completionHandler(panel.urls)
+                        } else {
+                            completionHandler(nil)
+                        }
+                    }
+                } else {
+                    let result = panel.runModal()
+                    if result == .OK {
+                        completionHandler(panel.urls)
+                    } else {
+                        completionHandler(nil)
+                    }
+                }
+            }
+        }
+        
         /// Se invoca cuando una página intenta abrir una nueva ventana/pestaña
         /// (ej: window.open(), target="_blank", etc.).
         /// En lugar de ignorar la solicitud, cargamos la URL en el mismo WebView.
