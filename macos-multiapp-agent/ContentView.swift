@@ -79,6 +79,10 @@ struct ContentView: View {
                     Label("Añadir Pestaña", systemImage: "plus")
                 }
                 .help("Añadir una nueva pestaña personalizada")
+                
+                // Botón de Configuración
+                OpenSettingsButtonContentView()
+                    .help("Abrir Configuración")
             }
         }
         .sheet(isPresented: $showingAddTab, onDismiss: { tabToEdit = nil }) {
@@ -361,4 +365,16 @@ struct TabDropDelegate: DropDelegate {
 
 #Preview {
     ContentView()
+}
+
+struct OpenSettingsButtonContentView: View {
+    @Environment(\.openWindow) var openWindow
+    
+    var body: some View {
+        Button(action: {
+            openWindow(id: "settings")
+        }) {
+            Label("Configuración", systemImage: "gearshape")
+        }
+    }
 }

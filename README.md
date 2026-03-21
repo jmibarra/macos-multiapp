@@ -103,9 +103,10 @@ El formulario de creación incluye **mini previews visuales** con colores difere
 
 - Al hacer **Cmd + Click** sobre cualquier enlace, éste se abrirá en el **navegador predeterminado de macOS** en lugar de navegar dentro de la pestaña actual.
 
-### ⬇️ Descarga de Archivos
+### ⬇️ Descarga y Carga de Archivos
 
 - Soporte nativo para **descarga de archivos** desde las aplicaciones web (ej. descargar un adjunto de Slack o Teams).
+- Soporte para **carga de archivos (uploads)** abriendo el panel de selección nativo de macOS (`NSOpenPanel`).
 - Integración completa con el panel de guardado nativo de macOS (`NSSavePanel`) respetando el *App Sandbox*.
 
 ### 🏃 Ejecución en Segundo Plano
