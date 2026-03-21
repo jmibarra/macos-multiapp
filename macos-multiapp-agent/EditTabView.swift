@@ -161,7 +161,12 @@ struct EditTabView: View {
     @State private var selectedLayout: LayoutType = .single
     
     // Array dinámico de servicios seleccionados (se ajusta al serviceCount del layout)
-    @State private var selectedServices: [Service] = [.googleTasks, .googleTasks, .googleTasks, .googleTasks]
+    @State private var selectedServices: [ServiceInstance] = [
+        ServiceInstance(service: .googleTasks),
+        ServiceInstance(service: .googleTasks),
+        ServiceInstance(service: .googleTasks),
+        ServiceInstance(service: .googleTasks)
+    ]
     
     // Iconos disponibles para elegir
     private let availableIcons = [
@@ -307,7 +312,7 @@ struct EditTabView: View {
                                         .frame(width: 120, alignment: .trailing)
                                         .font(.callout)
                                     
-                                    Picker("", selection: $selectedServices[index]) {
+                                    Picker("", selection: $selectedServices[index].service) {
                                         ForEach(Service.allCases) { service in
                                             Text(service.rawValue).tag(service)
                                         }
@@ -315,6 +320,22 @@ struct EditTabView: View {
                                     .labelsHidden()
                                     
                                     Spacer()
+                                }
+                                
+                                if selectedServices[index].service == .custom {
+                                    HStack {
+                                        TextField("Nombre", text: Binding(
+                                            get: { selectedServices[index].customName ?? "" },
+                                            set: { selectedServices[index].customName = $0 }
+                                        ))
+                                        .frame(width: 120)
+                                        
+                                        TextField("URL (ej. https://...)", text: Binding(
+                                            get: { selectedServices[index].customURL ?? "" },
+                                            set: { selectedServices[index].customURL = $0 }
+                                        ))
+                                    }
+                                    .padding(.leading, 140)
                                 }
                             }
                         }
@@ -362,7 +383,7 @@ struct EditTabView: View {
                 selectedLayout = tab.layout
                 for (index, serviceInstance) in tab.services.enumerated() {
                     if index < selectedServices.count {
-                        selectedServices[index] = serviceInstance.service
+                        selectedServices[index] = serviceInstance
                     }
                 }
             }

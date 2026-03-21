@@ -62,12 +62,14 @@ class WorkspaceManager: ObservableObject {
     // MARK: - API
     
     // Agrega una nueva pestana recibiendo los servicios seleccionados
-    func addTab(name: String, icon: String?, layout: LayoutType, services: [Service]) {
+    func addTab(name: String, icon: String?, layout: LayoutType, services: [ServiceInstance]) {
         var instances: [ServiceInstance] = []
-        for (index, service) in services.enumerated() {
+        for (index, mutService) in services.enumerated() {
             // Asegurar unicamente aislar los sessionID
             let suffix = "\(Date().timeIntervalSince1970)_\(index)"
-            instances.append(ServiceInstance(service: service, customSuffix: suffix))
+            var newInstance = mutService
+            newInstance.sessionID = "\(newInstance.service.defaultSessionPrefix)_\(suffix)"
+            instances.append(newInstance)
         }
         
         let newTab = WorkspaceTab(name: name, icon: icon, layout: layout, services: instances)
@@ -96,22 +98,31 @@ class WorkspaceManager: ObservableObject {
     }
     
     // Actualiza una pestaña existente, preservando los sessionID de los servicios que se mantienen
-    func updateTab(id: UUID, name: String, icon: String?, layout: LayoutType, services: [Service]) {
+    func updateTab(id: UUID, name: String, icon: String?, layout: LayoutType, services: [ServiceInstance]) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         
         let existingTab = tabs[index]
         let existingServices = existingTab.services
         var newInstances: [ServiceInstance] = []
         
-        for (i, service) in services.enumerated() {
+        for (i, incomingInstance) in services.enumerated() {
             // Si en esta posición ya había un servicio del mismo tipo, preservamos su sessionID
             // para que no se pierda la sesión (cookies, login, etc)
-            if i < existingServices.count && existingServices[i].service == service {
-                newInstances.append(existingServices[i])
+            if i < existingServices.count && existingServices[i].service == incomingInstance.service {
+                var reused = existingServices[i]
+                reused.customName = incomingInstance.customName
+                if incomingInstance.service == .custom && reused.customURL != incomingInstance.customURL {
+                    let suffix = "\(Date().timeIntervalSince1970)_\(i)"
+                    reused.sessionID = "\(reused.service.defaultSessionPrefix)_\(suffix)"
+                }
+                reused.customURL = incomingInstance.customURL
+                newInstances.append(reused)
             } else {
                 // Es un servicio nuevo en esta posición o cambió de tipo, generamos uno nuevo
                 let suffix = "\(Date().timeIntervalSince1970)_\(i)"
-                newInstances.append(ServiceInstance(service: service, customSuffix: suffix))
+                var newInstance = incomingInstance
+                newInstance.sessionID = "\(newInstance.service.defaultSessionPrefix)_\(suffix)"
+                newInstances.append(newInstance)
             }
         }
         

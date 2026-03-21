@@ -235,7 +235,7 @@ struct ContentView: View {
     // Helper para construir un WebView a partir de un ServiceInstance
     @ViewBuilder
     private func webView(for service: ServiceInstance) -> some View {
-        WorkspaceWebView(urlString: service.service.url, sessionID: service.sessionID)
+        WorkspaceWebView(urlString: service.displayURL, sessionID: service.sessionID)
             .frame(minWidth: 200, minHeight: 150)
     }
     

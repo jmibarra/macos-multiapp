@@ -9,6 +9,7 @@ enum Service: String, CaseIterable, Identifiable, Codable {
     case teams = "Microsoft Teams"
     case googleCalendar = "Google Calendar"
     case outlookMail = "Outlook Mail"
+    case custom = "Custom"
     
     var id: String { self.rawValue }
     
@@ -21,6 +22,7 @@ enum Service: String, CaseIterable, Identifiable, Codable {
         case .teams: return "https://teams.microsoft.com/v2/"
         case .googleCalendar: return "https://calendar.google.com"
         case .outlookMail: return "https://outlook.live.com/mail/"
+        case .custom: return ""
         }
     }
     
@@ -33,6 +35,7 @@ enum Service: String, CaseIterable, Identifiable, Codable {
         case .teams: return "teams"
         case .googleCalendar: return "gcalendar"
         case .outlookMail: return "outlook"
+        case .custom: return "custom"
         }
     }
 }
@@ -128,10 +131,28 @@ struct ServiceInstance: Identifiable, Codable {
     var id = UUID()
     var service: Service
     var sessionID: String // El ID de sesion especifico para aislamiento
+    var customName: String?
+    var customURL: String?
     
-    init(service: Service, customSuffix: String = "") {
+    init(service: Service, customSuffix: String = "", customName: String? = nil, customURL: String? = nil) {
         self.service = service
         self.sessionID = customSuffix.isEmpty ? service.defaultSessionPrefix : "\(service.defaultSessionPrefix)_\(customSuffix)"
+        self.customName = customName
+        self.customURL = customURL
+    }
+    
+    var displayURL: String {
+        if service == .custom {
+            let urlStr = (customURL?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
+            if urlStr.isEmpty {
+                return "https://google.com"
+            }
+            if !urlStr.lowercased().hasPrefix("http://") && !urlStr.lowercased().hasPrefix("https://") {
+                return "https://" + urlStr
+            }
+            return urlStr
+        }
+        return service.url
     }
 }
 

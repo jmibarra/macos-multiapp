@@ -48,6 +48,7 @@ Inspirado en [Franz](https://meetfranz.com/) y [Rambox](https://rambox.app/), pe
 ### 🗂️ Sistema de Pestañas Dinámicas
 
 - **Crear pestañas personalizadas** con un nombre y layout a elección.
+- **Servicios Custom** — Agrega servicios que no estén en la lista utilizando un nombre y una URL a medida.
 - **Editar pestañas existentes** — Renombra tus pestañas, cambia su disposición F×C o reconfigura los servicios sin perder los inicios de sesión anteriores.
 - **Eliminar pestañas** con confirmación para evitar borrados accidentales.
 - **Drag & Drop** — Arrastra las pestañas para reordenarlas con reordenamiento visual en tiempo real.
@@ -188,6 +189,7 @@ graph TD
 | Google Tasks    | `tasks.google.com`    | `tasks`                 |
 | Google Calendar | `calendar.google.com` | `gcalendar`             |
 | Outlook Mail    | `outlook.live.com`    | `outlook`               |
+| Custom          | *(Definida por ti)*   | `custom_[id]`           |
 
 > **Nota:** Los servicios se pueden usar múltiples veces en diferentes pestañas. Cada instancia genera un `sessionID` único para mantener sesiones independientes.
 
@@ -419,7 +421,7 @@ Este proyecto sigue un código de conducta basado en el respeto mutuo. Se espera
 - [ ] Íconos personalizados por servicio en las pestañas
 - [ ] Temas claros/oscuros personalizables
 - [ ] Exportar/importar configuración de workspace
-- [ ] Soporte para URLs personalizadas (servicios self-hosted)
+- [x] Soporte para URLs personalizadas (servicios self-hosted)
 - [ ] Barra lateral colapsable como alternativa a pestañas
 - [x] Drag & drop para reordenar pestañas
 
