@@ -48,6 +48,9 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         // Identificador único para la categoría, permite agrupar por servicio
         content.threadIdentifier = sessionID
         
+        // Agregar sessionID al userInfo para poder recuperarlo al hacer click
+        content.userInfo = ["sessionID": sessionID]
+        
         // Crear la request con un ID único
         let requestID = "\(sessionID)-\(UUID().uuidString)"
         let request = UNNotificationRequest(
@@ -103,7 +106,16 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     ) {
         // Traer la app al frente cuando el usuario clickea la notificación
         DispatchQueue.main.async {
-            NSApp.activate(ignoringOtherApps: true)
+            if let delegate = NSApp.delegate as? AppDelegate {
+                delegate.showMainWindow()
+            } else {
+                NSApp.activate(ignoringOtherApps: true)
+            }
+            
+            // Emitir evento para cambiar la pestaña
+            if let sessionID = response.notification.request.content.userInfo["sessionID"] as? String {
+                NotificationCenter.default.post(name: .didClickNotification, object: sessionID)
+            }
         }
         completionHandler()
     }

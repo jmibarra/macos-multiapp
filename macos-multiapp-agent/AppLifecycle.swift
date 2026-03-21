@@ -14,15 +14,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
     
-    // Muestra la ventana principal si estaba oculta
+    // Muestra la ventana principal si estaba oculta o minimizada
     func showMainWindow() {
         for window in NSApplication.shared.windows {
-            // Buscamos la ventana principal de SwiftUI
-            if window.className == "SwiftUI.AppKitWindow" {
+            // Evaluamos si es una ventana capaz de ser principal (ignora ventanas de menubar o utilitarias)
+            if window.canBecomeMain {
+                if window.isMiniaturized {
+                    window.deminiaturize(nil)
+                }
                 window.makeKeyAndOrderFront(nil)
-                NSApp.activate(ignoringOtherApps: true)
+                window.orderFrontRegardless()
                 break
             }
+        }
+        
+        // Traer la app completa al frente inmediatamente (forzando cambio de Space si es necesario)
+        if #available(macOS 14.0, *) {
+            NSApp.activate()
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 }

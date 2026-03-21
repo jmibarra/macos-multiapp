@@ -1,6 +1,10 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+extension Notification.Name {
+    static let didClickNotification = Notification.Name("didClickNotification")
+}
+
 struct ContentView: View {
     @StateObject private var workspaceManager = WorkspaceManager()
     @State private var showingAddTab = false
@@ -104,6 +108,17 @@ struct ContentView: View {
         }
         // Intercepta el botón de cerrado de la ventana para ocultarla y no destruirla
         .background(WindowAccessor())
+        // Escucha el click en las notificaciones para navegar a la pestaña correcta
+        .onReceive(NotificationCenter.default.publisher(for: .didClickNotification)) { notification in
+            if let sessionID = notification.object as? String {
+                // Buscar la pestaña que contiene la sesión indicada y seleccionarla
+                if let targetTab = workspaceManager.tabs.first(where: { tab in
+                    tab.services.contains(where: { $0.sessionID == sessionID })
+                }) {
+                    selectedTabId = targetTab.id
+                }
+            }
+        }
     }
     
     // MARK: - Tab Bar con Drag & Drop
